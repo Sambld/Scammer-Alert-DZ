@@ -13,7 +13,7 @@ class ReportVotePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class ReportVotePolicy
      */
     public function view(User $user, ReportVote $reportVote): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,20 @@ class ReportVotePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active;
+    }
+
+    /**
+     * Determine whether the user can vote on a specific report.
+     */
+    public function voteOnReport(User $user, \App\Models\Report $report): bool
+    {
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Users cannot vote on their own reports
+        return $report->user_id !== $user->id;
     }
 
     /**
@@ -37,7 +50,17 @@ class ReportVotePolicy
      */
     public function update(User $user, ReportVote $reportVote): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can update any vote
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only update their own votes
+        return $reportVote->user_id === $user->id;
     }
 
     /**
@@ -45,7 +68,17 @@ class ReportVotePolicy
      */
     public function delete(User $user, ReportVote $reportVote): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can delete any vote
+        if ($user->isModerator()) {
+            return true;
+        }
+
+                // Users can only delete their own votes
+        return $reportVote->user_id === $user->id;
     }
 
     /**
@@ -53,7 +86,7 @@ class ReportVotePolicy
      */
     public function restore(User $user, ReportVote $reportVote): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -61,6 +94,7 @@ class ReportVotePolicy
      */
     public function forceDelete(User $user, ReportVote $reportVote): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
+
 }

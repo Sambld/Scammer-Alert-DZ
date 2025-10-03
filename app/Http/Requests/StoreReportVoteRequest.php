@@ -11,7 +11,8 @@ class StoreReportVoteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Check if user can vote on this specific report
+        return $this->user()->can('voteOnReport', [$this->route('report')]);
     }
 
     /**
@@ -22,7 +23,18 @@ class StoreReportVoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'vote_type' => ['required', 'in:upvote,downvote'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'vote_type.required' => 'Please specify a vote type.',
+            'vote_type.in' => 'Invalid vote type. Must be either upvote or downvote.',
         ];
     }
 }

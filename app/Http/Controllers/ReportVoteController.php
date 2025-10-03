@@ -2,65 +2,103 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use App\Models\ReportVote;
 use App\Http\Requests\StoreReportVoteRequest;
 use App\Http\Requests\UpdateReportVoteRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
 
 class ReportVoteController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Vote on a report (upvote or downvote).
      */
-    public function index()
+    public function store(StoreReportVoteRequest $request, Report $report)
     {
-        //
+        $validated = $request->validated();
+        $userId = auth()->id();
+
+        // Check if user already voted
+        $existingVote = ReportVote::where('report_id', $report->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        DB::transaction(function () use ($report, $existingVote, $validated, $userId) {
+            if ($existingVote) {
+                // If same vote type, remove the vote (toggle)
+                if ($existingVote->vote_type === $validated['vote_type']) {
+                    // Decrement counter
+                    if ($existingVote->vote_type === 'upvote') {
+                        $report->decrement('upvotes_count');
+                    } else {
+                        $report->decrement('downvotes_count');
+                    }
+                    $existingVote->delete();
+                } else {
+                    // Change vote type
+                    // Adjust counters
+                    if ($existingVote->vote_type === 'upvote') {
+                        $report->decrement('upvotes_count');
+                        $report->increment('downvotes_count');
+                    } else {
+                        $report->decrement('downvotes_count');
+                        $report->increment('upvotes_count');
+                    }
+                    $existingVote->update(['vote_type' => $validated['vote_type']]);
+                }
+            } else {
+                // Create new vote
+                ReportVote::create([
+                    'report_id' => $report->id,
+                    'user_id' => $userId,
+                    'vote_type' => $validated['vote_type'],
+                ]);
+
+                // Increment counter
+                if ($validated['vote_type'] === 'upvote') {
+                    $report->increment('upvotes_count');
+                } else {
+                    $report->increment('downvotes_count');
+                }
+            }
+        });
+
+        return redirect()->back()
+            ->with('success', __('Vote recorded successfully.'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Remove vote from a report.
      */
-    public function create()
+    public function destroy(Report $report)
     {
-        //
-    }
+        $userId = auth()->id();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreReportVoteRequest $request)
-    {
-        //
-    }
+        $vote = ReportVote::where('report_id', $report->id)
+            ->where('user_id', $userId)
+            ->first();
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(ReportVote $reportVote)
-    {
-        //
-    }
+        if (!$vote) {
+            return redirect()->back()
+                ->with('error', __('No vote found to remove.'));
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ReportVote $reportVote)
-    {
-        //
-    }
+        Gate::authorize('delete', $vote);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateReportVoteRequest $request, ReportVote $reportVote)
-    {
-        //
-    }
+        DB::transaction(function () use ($report, $vote) {
+            // Decrement counter
+            if ($vote->vote_type === 'upvote') {
+                $report->decrement('upvotes_count');
+            } else {
+                $report->decrement('downvotes_count');
+            }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ReportVote $reportVote)
-    {
-        //
+            $vote->delete();
+        });
+
+        return redirect()->back()
+            ->with('success', __('Vote removed successfully.'));
     }
 }

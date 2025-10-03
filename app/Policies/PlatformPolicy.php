@@ -13,7 +13,7 @@ class PlatformPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class PlatformPolicy
      */
     public function view(User $user, Platform $platform): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,7 @@ class PlatformPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 
     /**
@@ -37,7 +37,7 @@ class PlatformPolicy
      */
     public function update(User $user, Platform $platform): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 
     /**
@@ -45,7 +45,7 @@ class PlatformPolicy
      */
     public function delete(User $user, Platform $platform): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 
     /**
@@ -53,7 +53,7 @@ class PlatformPolicy
      */
     public function restore(User $user, Platform $platform): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 
     /**
@@ -61,6 +61,10 @@ class PlatformPolicy
      */
     public function forceDelete(User $user, Platform $platform): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
+
+
+
 }
+

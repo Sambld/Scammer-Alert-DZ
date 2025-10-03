@@ -13,7 +13,7 @@ class ScammerProfilePolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class ScammerProfilePolicy
      */
     public function view(User $user, ScammerProfile $scammerProfile): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,7 @@ class ScammerProfilePolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -37,7 +37,7 @@ class ScammerProfilePolicy
      */
     public function update(User $user, ScammerProfile $scammerProfile): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -45,7 +45,7 @@ class ScammerProfilePolicy
      */
     public function delete(User $user, ScammerProfile $scammerProfile): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 
     /**
@@ -53,7 +53,7 @@ class ScammerProfilePolicy
      */
     public function restore(User $user, ScammerProfile $scammerProfile): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -61,6 +61,8 @@ class ScammerProfilePolicy
      */
     public function forceDelete(User $user, ScammerProfile $scammerProfile): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
+
     }
+
 }

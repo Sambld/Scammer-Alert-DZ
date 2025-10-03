@@ -13,7 +13,7 @@ class ReportPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class ReportPolicy
      */
     public function view(User $user, Report $report): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,7 @@ class ReportPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -37,7 +37,17 @@ class ReportPolicy
      */
     public function update(User $user, Report $report): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can update any report
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only update their own reports
+        return $report->user_id === $user->id;
     }
 
     /**
@@ -45,7 +55,17 @@ class ReportPolicy
      */
     public function delete(User $user, Report $report): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can delete any report
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only delete their own reports
+        return $report->user_id === $user->id;
     }
 
     /**
@@ -53,14 +73,25 @@ class ReportPolicy
      */
     public function restore(User $user, Report $report): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
+
+    /**
+     * Determine whether the user can moderate the model (change status, add moderator notes).
+     */
+    public function moderate(User $user, Report $report): bool
+    {
+        return $user->is_active && $user->isModerator();
+    }
+
+  
+     
 
     /**
      * Determine whether the user can permanently delete the model.
      */
     public function forceDelete(User $user, Report $report): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 }

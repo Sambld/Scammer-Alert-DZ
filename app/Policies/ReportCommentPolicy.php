@@ -13,7 +13,7 @@ class ReportCommentPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class ReportCommentPolicy
      */
     public function view(User $user, ReportComment $reportComment): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,7 @@ class ReportCommentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -37,7 +37,17 @@ class ReportCommentPolicy
      */
     public function update(User $user, ReportComment $reportComment): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can update any comment
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only update their own comments
+        return $reportComment->user_id === $user->id;
     }
 
     /**
@@ -45,7 +55,17 @@ class ReportCommentPolicy
      */
     public function delete(User $user, ReportComment $reportComment): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can delete any comment
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only delete their own comments
+        return $reportComment->user_id === $user->id;
     }
 
     /**
@@ -53,7 +73,7 @@ class ReportCommentPolicy
      */
     public function restore(User $user, ReportComment $reportComment): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -61,6 +81,8 @@ class ReportCommentPolicy
      */
     public function forceDelete(User $user, ReportComment $reportComment): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
 }
+
+

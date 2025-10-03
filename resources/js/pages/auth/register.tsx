@@ -242,7 +242,7 @@ export default function Register() {
                 {/* Submit Button */}
                 <Button 
                     type="submit" 
-                    className="w-full h-12 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]" 
+                    className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]" 
                     tabIndex={5} 
                     disabled={processing}
                 >

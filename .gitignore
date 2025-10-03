@@ -24,3 +24,6 @@ yarn-error.log
 /.zed
 /.github
 plan.md
+/CONTROLLERS_IMPLEMENTATION.md
+/tests/TEST_SUMMARY.md
+app/Http/Controllers/CONTROLLERS_IMPLEMENTATION.md

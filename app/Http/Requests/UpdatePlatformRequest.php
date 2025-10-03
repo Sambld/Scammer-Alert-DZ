@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePlatformRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class UpdatePlatformRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('update', $this->route('platform'));
     }
 
     /**
@@ -21,8 +22,22 @@ class UpdatePlatformRequest extends FormRequest
      */
     public function rules(): array
     {
+        $platformId = $this->route('platform')->id;
+
         return [
-            //
+            'name' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('platforms')->ignore($platformId)],
+            'is_active' => ['boolean'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'Platform name is required.',
+            'name.unique' => 'This platform name is already taken.',
         ];
     }
 }

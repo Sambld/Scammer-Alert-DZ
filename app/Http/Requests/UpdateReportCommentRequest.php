@@ -11,7 +11,7 @@ class UpdateReportCommentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('update', $this->route('comment'));
     }
 
     /**
@@ -22,7 +22,19 @@ class UpdateReportCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'content' => ['required', 'string', 'min:3', 'max:2000'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return [
+            'content.required' => 'Please enter a comment.',
+            'content.min' => 'Comment must be at least 3 characters.',
+            'content.max' => 'Comment cannot exceed 2000 characters.',
         ];
     }
 }

@@ -2,65 +2,100 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use App\Models\ReportMedia;
 use App\Http\Requests\StoreReportMediaRequest;
 use App\Http\Requests\UpdateReportMediaRequest;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class ReportMediaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Store a newly uploaded media file for a report.
      */
-    public function index()
+    public function store(StoreReportMediaRequest $request, Report $report)
     {
-        //
+        Gate::authorize('update', $report);
+
+        $validated = $request->validated();
+
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('reports/' . $report->id, 'public');
+
+            $media = $report->media()->create([
+                'file_path' => $path,
+                'file_type' => $file->getMimeType(),
+                'file_size' => $file->getSize(),
+                'original_filename' => $file->getClientOriginalName(),
+                'sort_order' => $report->media()->count(),
+            ]);
+
+            return redirect()->back()
+                ->with('success', __('Media file uploaded successfully.'));
+        }
+
+        return redirect()->back()
+            ->with('error', __('No file was uploaded.'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Download a media file.
      */
-    public function create()
+    public function show(Report $report, ReportMedia $media)
     {
-        //
+        Gate::authorize('view', $report);
+
+        // Verify media belongs to this report
+        if ($media->report_id !== $report->id) {
+            abort(404);
+        }
+
+        return Storage::disk('public')->download(
+            $media->file_path,
+            $media->original_filename
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Update media file order.
      */
-    public function store(StoreReportMediaRequest $request)
+    public function update(UpdateReportMediaRequest $request, Report $report, ReportMedia $media)
     {
-        //
+        Gate::authorize('update', $report);
+
+        // Verify media belongs to this report
+        if ($media->report_id !== $report->id) {
+            abort(404);
+        }
+
+        $validated = $request->validated();
+        $media->update($validated);
+
+        return redirect()->back()
+            ->with('success', __('Media updated successfully.'));
     }
 
     /**
-     * Display the specified resource.
+     * Remove media file from report.
      */
-    public function show(ReportMedia $reportMedia)
+    public function destroy(Report $report, ReportMedia $media)
     {
-        //
-    }
+        Gate::authorize('update', $report);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(ReportMedia $reportMedia)
-    {
-        //
-    }
+        // Verify media belongs to this report
+        if ($media->report_id !== $report->id) {
+            abort(404);
+        }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateReportMediaRequest $request, ReportMedia $reportMedia)
-    {
-        //
-    }
+        // Delete file from storage
+        Storage::disk('public')->delete($media->file_path);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(ReportMedia $reportMedia)
-    {
-        //
+        // Delete database record
+        $media->delete();
+
+        return redirect()->back()
+            ->with('success', __('Media file deleted successfully.'));
     }
 }

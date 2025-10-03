@@ -45,7 +45,7 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                     <nav className="flex h-16 items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <Link href={route('home')} className="flex items-center space-x-3 group">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold text-lg group-hover:scale-105 transition-transform">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-600 text-white font-bold text-lg group-hover:scale-105 transition-transform">
                                     E
                                 </div>
                                 <span className="text-xl font-bold text-slate-900 dark:text-white">
@@ -82,7 +82,7 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                         <div className="flex flex-col items-center gap-6 mb-8">
                             {/* Logo and brand */}
                             <div className="flex flex-col items-center gap-3">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-600 text-white shadow-lg">
                                     <Shield className="w-8 h-8" />
                                 </div>
                                 <div className="text-center">

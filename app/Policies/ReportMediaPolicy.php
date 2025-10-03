@@ -13,7 +13,7 @@ class ReportMediaPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -21,7 +21,7 @@ class ReportMediaPolicy
      */
     public function view(User $user, ReportMedia $reportMedia): bool
     {
-        return false;
+        return $user->is_active;
     }
 
     /**
@@ -29,7 +29,25 @@ class ReportMediaPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->is_active;
+    }
+
+    /**
+     * Determine whether the user can attach media to a specific report.
+     */
+    public function attachToReport(User $user, \App\Models\Report $report): bool
+    {
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can attach media to any report
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only attach media to their own reports
+        return $report->user_id === $user->id;
     }
 
     /**
@@ -37,7 +55,17 @@ class ReportMediaPolicy
      */
     public function update(User $user, ReportMedia $reportMedia): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can update any media
+        if ($user->isModerator()) {
+            return true;
+        }
+
+        // Users can only update media from their own reports
+        return $reportMedia->report->user_id === $user->id;
     }
 
     /**
@@ -45,7 +73,17 @@ class ReportMediaPolicy
      */
     public function delete(User $user, ReportMedia $reportMedia): bool
     {
-        return false;
+        if (!$user->is_active) {
+            return false;
+        }
+
+        // Moderators and admins can delete any media
+        if ($user->isModerator()) {
+            return true;
+        }
+
+                // Users can only delete media from their own reports
+        return $reportMedia->report->user_id === $user->id;
     }
 
     /**
@@ -53,7 +91,7 @@ class ReportMediaPolicy
      */
     public function restore(User $user, ReportMedia $reportMedia): bool
     {
-        return false;
+        return $user->is_active && $user->isModerator();
     }
 
     /**
@@ -61,6 +99,7 @@ class ReportMediaPolicy
      */
     public function forceDelete(User $user, ReportMedia $reportMedia): bool
     {
-        return false;
+        return $user->is_active && $user->isAdmin();
     }
+
 }

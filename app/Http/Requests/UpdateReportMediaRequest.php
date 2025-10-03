@@ -11,7 +11,7 @@ class UpdateReportMediaRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('update', $this->route('report'));
     }
 
     /**
@@ -22,7 +22,7 @@ class UpdateReportMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'sort_order' => ['sometimes', 'integer', 'min:0'],
         ];
     }
 }
